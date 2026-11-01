@@ -1,2 +1,4 @@
 [tools]
-python = "latest"
+pipenv = "latest"
+python = "3.13"
+terraform = "latest"
