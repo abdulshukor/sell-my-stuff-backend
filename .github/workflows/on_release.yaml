@@ -30,12 +30,12 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
-          role-session-name: Fronted-deploymnet
+          role-session-name: backend-deploymnet
 
       - name: Upload to S3
         run: |
-          aws s3 cp lambda_package.zip s3://sell-my-stuff-backend-abdul/artifacts/lambda_package.zip
-          aws s3 cp lambda_package.zip s3://sell-my-stuff-backend-abdul/artifacts/dependencies.zip
+          aws s3 cp lambda_package.zip s3://${{ secrets.S3_BUCKET_NAME }}/artifacts/lambda_package.zip
+          aws s3 cp dependencies.zip s3://${{ secrets.S3_BUCKET_NAME }}/artifacts/dependencies.zip
 
   terraform:
     runs-on: ubuntu-latest
@@ -68,33 +68,4 @@ jobs:
         run: terraform plan
 
       - name: Terraform Apply
-        run: terraform apply --auto-approve
-
-  deploy_app:
-    runs-on: ubuntu-latest
-    needs: terraform
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: v22.21.0
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Deploy App
-        run: npm run build
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
-        with:
-          aws-region: us-east-1
-          role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
-          role-session-name: Fronted-deploymnet
-      - name: Deploy App
-        run: |
-          aws s3 sync dist s3://sell-my-stuff-frontend-abdul --delete
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID}} --paths "/*"
+        # run: terraform apply --auto-approve

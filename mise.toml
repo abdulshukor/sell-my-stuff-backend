@@ -1,4 +1,10 @@
 [tools]
+awscli = { version = "latest", symlink_bins = "true" }
 pipenv = "latest"
 python = "3.13"
 terraform = "latest"
+
+
+[env]
+AWS_PROFILE = "aws-sell-my-stuff-backend"
+AWS_REGION = "us-east-1"
