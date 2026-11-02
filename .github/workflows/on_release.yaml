@@ -40,6 +40,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     # setting default working dir. Apply to all.
+    needs: lambda_packaging
     defaults:
       run:
         working-directory: terraform
