@@ -1,11 +1,13 @@
 name: Release
 
-
 on:
-  workflow_call
-  
+  push:
+    branches:
+      - main
+
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   lambda_packaging:
@@ -22,51 +24,49 @@ jobs:
 
       - name: Package code
         run: ./pacakge_code.sh
- 
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
-         aws-region: us-east-1
-         role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
-         role-session-name: Fronted-deploymnet 
-      
+          aws-region: us-east-1
+          role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
+          role-session-name: Fronted-deploymnet
+
       - name: Upload to S3
         run: |
           aws s3 cp lambda_package.zip s3://sell-my-stuff-backend-abdul/artifacts/lambda_package.zip
           aws s3 cp lambda_package.zip s3://sell-my-stuff-backend-abdul/artifacts/dependencies.zip
 
-          
-
   terraform:
     runs-on: ubuntu-latest
-    # setting default working dir. Apply to all. 
-    defaults: 
-        run: 
-            working-directory: terraform 
+    # setting default working dir. Apply to all.
+    defaults:
+      run:
+        working-directory: terraform
     steps:
-        # Clone the code. Get copy of the code. 
+      # Clone the code. Get copy of the code.
       - name: Checkout code
         uses: actions/checkout@v4
 
         # Install terraform
-      - name: Setup Terraform 
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3.1.2
-        with: # inputs 
-            terraform_version: 1.13.4  
+        with: # inputs
+          terraform_version: 1.13.4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
-            aws-region: us-east-1
-            role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
-            role-session-name: Fronted-deploymnet 
+          aws-region: us-east-1
+          role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
+          role-session-name: Fronted-deploymnet
 
       - name: Terraform init
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan 
-        
+        run: terraform plan
+
       - name: Terraform Apply
         run: terraform apply --auto-approve
 
@@ -74,27 +74,27 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform
     steps:
-     - name: Checkout code
-       uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-     - name: Setup Node.js
-       uses: actions/setup-node@v4
-       with:
-        node-version: v22.21.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: v22.21.0
 
-     - name: Install dependencies
-       run: npm install 
+      - name: Install dependencies
+        run: npm install
 
-     - name: Deploy App
-       run: npm run build 
+      - name: Deploy App
+        run: npm run build
 
-     - name: Configure AWS Credentials
-       uses: aws-actions/configure-aws-credentials@v5.1.0
-       with:
-        aws-region: us-east-1
-        role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
-        role-session-name: Fronted-deploymnet 
-     - name: Deploy App
-       run: |
-         aws s3 sync dist s3://sell-my-stuff-frontend-abdul --delete
-         aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID}} --paths "/*"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{secrets.AWS_ROLE_ASSUME}}
+          role-session-name: Fronted-deploymnet
+      - name: Deploy App
+        run: |
+          aws s3 sync dist s3://sell-my-stuff-frontend-abdul --delete
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID}} --paths "/*"
