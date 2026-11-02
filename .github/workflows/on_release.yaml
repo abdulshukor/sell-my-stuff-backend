@@ -23,7 +23,7 @@ jobs:
           python-version: "3.13"
 
       - name: Package code
-        run: ./pacakge_code.sh
+        run: ./package_code.sh
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5.1.0
